@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayChain</title>
+  <style>
+/* Estilo global */
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #2b3a4f, #3c4a63);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #f7f7f7;
+  overflow: hidden; /* Impede o excesso de rolagem da página */
+  box-sizing: border-box;
+}
+
+/* Container principal */
+.container {
+  max-width: 500px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  overflow-y: auto; /* Permite rolagem se necessário */
+  max-height: 90vh; /* Define a altura máxima */
+  animation: fadeIn 1s ease-out;
+}
+
+/* Títulos */
+h1, h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  letter-spacing: 1.5px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4e9e89;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+h2 {
+  color: #f7f7f7;
+  font-size: 20px;
+  font-weight: 400;
+  margin-top: 8px;
+}
+
+/* Botões */
+button {
+  padding: 12px 20px;
+  background: linear-gradient(45deg, #4e9e89, #66a0b2);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  margin: 10px 0;
+  width: 100%;
+  text-transform: uppercase;
+}
+
+button:hover {
+  background: linear-gradient(45deg, #66a0b2, #4e9e89);
+  box-shadow: 0 4px 15px rgba(78, 158, 137, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Input Fields */
+input[type="number"], input[type="text"] {
+  width: 90%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+input[type="number"]:focus, input[type="text"]:focus {
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  border-color: #4e9e89;
+}
+
+/* Status e mensagens */
+#client-status {
+  color: #ff6f61;
+  font-weight: bold;
+  margin-top: 15px;
+  font-size: 14px;
+  max-height: 50px; /* Limita a altura da área de erro */
+  overflow-y: auto; /* Permite rolagem na área de erro */
+}
+
+#invoice-info {
+  margin-top: 15px;
+  font-size: 16px;
+  color: #f4f7f9;
+  font-weight: 500;
+}
+
+/* Container de faturas com rolagem */
+#invoice-list {
+  margin-top: 20px;
+  max-height: 250px;  /* Altura fixa para forçar rolagem */
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Estilo para o QR Scanner */
+#qr-scanner {
+  margin-top: 25px;
+  width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+  border: 2px solid #4e9e89;
+  padding: 8px;
+  border-radius: 15px;
+  background-color: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hidden {
+  display: none;
+}
+
+/* Animação de transição */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.modal {
+  display: none; /* Oculta a modal inicialmente */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  align-items: center;
+}
+
+
+
+.modal-content {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  align-items: center;
+}
+
+/* Botão de fechar a modal */
+.close {
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: #f7f7f7;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#status-field {
+  font-weight: bold;
+  color: #007bff;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+    max-width: 100%;
+  }
+  
+  button {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+  
+  input[type="number"], input[type="text"] {
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  #qr-scanner {
+    max-width: 280px;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Página do Garçom</h1>
+    <h2>Criar Fatura</h2>
+    <div class="form-group">
+      <label for="tableId">ID da Mesa:</label>
+      <input type="number" id="tableId" placeholder="Ex: 1">
+    </div>
+    <div class="form-group">
+      <label for="amount">Valor (em USDC):</label>
+      <input type="number" step="0.01" id="amount" placeholder="Ex: 0.02">
+    </div>
+    <button id="create-invoice-btn">Criar Fatura</button>
+
+    <h2>Faturas Criadas</h2>
+    <input type="text" id="search-bar" placeholder="Pesquisar por ID de fatura">
+    <div id="invoice-list"></div>
+  </div>
+
+  <!-- Modal para detalhes da fatura -->
+  <div id="invoice-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="modal-close">&times;</span>
+      <h2>Detalhes da Fatura</h2>
+      <!-- Conteúdo estático e dinâmico separado -->
+      <div id="modal-static">
+        <!-- Dados estáticos: ID, Mesa e Valor -->
+      </div>
+      <div>
+        <strong>Status: </strong><span id="status-field"></span>
+      </div>
+      <button id="cancel-invoice-btn">Cancelar Fatura</button>
+      <div id="qr-code"></div>
+    </div>
+  </div>
+
+  <!-- Carregar Ethers.js e QRCode.js -->
+  <script src="https://unpkg.com/ethers@5.7.0/dist/ethers.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    // Endereço do contrato e ABI
+    const contractAddress = " ";
+    
+    const paymentSystemABI = [ ];
+
+    let provider, signer, paymentSystemContract;
+    let currentInvoiceId = null;
+    let statusInterval;
+
+  
+
+    // Função para criar fatura
+    document.getElementById("create-invoice-btn").addEventListener("click", async function() {
+      const tableId = document.getElementById("tableId").value;
+      const amountValue = document.getElementById("amount").value;
+      if (!tableId || !amountValue || parseFloat(amountValue) <= 0) {
+        alert("Insira valores válidos para a mesa e o valor.");
+        return;
+      }
+      const amount = ethers.utils.parseUnits(amountValue, 6);
+      try {
+        const tx = await paymentSystemContract.createPaymentByOwner(tableId, amount);
+        const receipt = await tx.wait();
+        // Assume que o evento PaymentCreated retorna o ID da fatura como primeiro argumento
+        const invoiceId = receipt.events[0].args[0].toString();
+        alert("Fatura criada! ID: " + invoiceId);
+        showModal(invoiceId, tableId, amountValue, "Pendente");
+        updateInvoiceList();
+      } catch (error) {
+        alert("Erro ao criar fatura: " + error.message);
+      }
+    });
+
+   
+ 
+
+// Certifique-se de que o contrato foi inicializado antes de chamar a função
+async function init() {
+  if (window.ethereum) {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    paymentSystemContract = new ethers.Contract(contractAddress, paymentSystemABI, signer);
+
+    // Depois que o contrato for inicializado, chamar a função para carregar as faturas
+    updateInvoiceList();
+  } else {
+    console.error("MetaMask não está disponível.");
+  }
+}
+
+async function updateInvoiceList() {
+  try {
+    const count = await paymentSystemContract.paymentCount();
+    const listDiv = document.getElementById("invoice-list");
+    
+    // Conjunto para armazenar IDs de faturas já exibidas
+    const displayedInvoices = new Set(); 
+
+    // Limpa o conteúdo antes de inserir novamente para evitar duplicação
+    listDiv.innerHTML = "";
+
+    // Carregar as faturas, do mais recente ao mais antigo
+    for (let i = count; i >= 1; i--) {
+      const payment = await paymentSystemContract.getPayment(i);
+      const tableId = payment[0].toString();
+      const amount = ethers.utils.formatUnits(payment[1], 6);
+      const isPaid = payment[3];
+      const isCancelled = payment[4];
+      let status = "Pendente";
+
+      if (isPaid) status = "Pago";
+      else if (isCancelled) status = "Cancelado";
+
+      // Verifica se o ID da fatura já foi exibido
+      if (!displayedInvoices.has(i)) {
+        const div = document.createElement("div");
+        div.className = "invoice-item";
+        div.innerHTML = `Fatura ID: ${i} | Mesa: ${tableId} | Valor: ${amount} USDC | Status: ${status}`;
+
+        // Botão para ver detalhes
+        const detailsBtn = document.createElement("button");
+        detailsBtn.className = "invoice-details-btn";
+        detailsBtn.innerText = "Ver Detalhes";
+        detailsBtn.addEventListener("click", function() {
+          showModal(i, tableId, amount, status);
+        });
+
+        div.appendChild(detailsBtn);
+        listDiv.appendChild(div);
+
+        // Adiciona o ID da fatura ao conjunto para evitar duplicatas
+        displayedInvoices.add(i);
+      }
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar lista de faturas:", error);
+  }
+}
+
+// Inicialize o contrato e carregue as faturas
+init();
+
+
+
+    // Barra de pesquisa
+    document.getElementById("search-bar").addEventListener("input", function() {
+      const filter = this.value.toLowerCase();
+      const items = document.getElementsByClassName("invoice-item");
+      Array.from(items).forEach(item => {
+        item.style.display = item.innerText.toLowerCase().includes(filter) ? "" : "none";
+      });
+    });
+
+    // Modal
+    const modal = document.getElementById("invoice-modal");
+    const modalStatic = document.getElementById("modal-static");
+    const statusField = document.getElementById("status-field");
+    const modalClose = document.getElementById("modal-close");
+    const qrCodeContainer = document.getElementById("qr-code");
+
+    function showModal(invoiceId, tableId, amount, status) {
+      currentInvoiceId = invoiceId;
+      // Preencher conteúdo estático uma única vez
+      modalStatic.innerHTML = `ID: ${invoiceId}<br>Mesa: ${tableId}<br>Valor: ${amount} USDC`;
+      statusField.innerText = status;
+      // Gerar QR Code centralizado
+      qrCodeContainer.innerHTML = "";
+      new QRCode(qrCodeContainer, {
+        text: invoiceId,
+        width: 128,
+        height: 128,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      modal.style.display = "block";
+      startStatusUpdate(invoiceId);
+    }
+
+    modalClose.addEventListener("click", function() {
+      modal.style.display = "none";
+      stopStatusUpdate();
+    });
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+        stopStatusUpdate();
+      }
+    };
+
+    function startStatusUpdate(invoiceId) {
+      statusInterval = setInterval(async function() {
+        try {
+          const payment = await paymentSystemContract.getPayment(invoiceId);
+          const newStatus = payment[3] ? "Pago" : (payment[4] ? "Cancelado" : "Pendente");
+          statusField.innerText = newStatus;
+        } catch (error) {
+          console.error("Erro ao atualizar status:", error);
+        }
+      }, 5000);
+    }
+    function stopStatusUpdate() {
+      clearInterval(statusInterval);
+    }
+
+    // Cancelar fatura (modal)
+    document.getElementById("cancel-invoice-btn").addEventListener("click", async function() {
+      if (!currentInvoiceId) {
+        alert("ID de fatura não definido.");
+        return;
+      }
+      try {
+        const tx = await paymentSystemContract.cancelPayment(currentInvoiceId);
+        await tx.wait();
+        alert("Fatura cancelada.");
+        modal.style.display = "none";
+        stopStatusUpdate();
+        updateInvoiceList();
+      } catch (error) {
+        alert("Erro ao cancelar fatura: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
