@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página do Cliente</title>
+  <style>
+    /* Estilo global */
+body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #2b3a4f, #3c4a63);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #f7f7f7;
+  overflow: hidden; /* Impede o excesso de rolagem da página */
+}
+
+/* Container principal */
+.container {
+  max-width: 500px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  overflow-y: auto; /* Permite rolagem no container se necessário */
+  max-height: 90vh; /* Define a altura máxima */
+}
+
+/* Títulos */
+h1, h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  letter-spacing: 1.5px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4e9e89;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+h2 {
+  color: #f7f7f7;
+  font-size: 20px;
+  font-weight: 400;
+  margin-top: 8px;
+}
+
+/* Botões */
+button {
+  padding: 12px 20px;
+  background: linear-gradient(45deg, #4e9e89, #66a0b2);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  margin: 10px 0;
+  width: 100%;
+  text-transform: uppercase;
+}
+
+button:hover {
+  background: linear-gradient(45deg, #66a0b2, #4e9e89);
+  box-shadow: 0 4px 15px rgba(78, 158, 137, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Input Fields */
+input[type="number"], input[type="text"] {
+  width: 90%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+input[type="number"]:focus, input[type="text"]:focus {
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  border-color: #4e9e89;
+}
+
+/* Status e mensagens */
+#client-status {
+  color: #ff6f61;
+  font-weight: bold;
+  margin-top: 15px;
+  font-size: 14px;
+  max-height: 50px; /* Limita a altura da área de erro */
+  overflow-y: auto; /* Permite rolagem na área de erro */
+}
+
+#invoice-info {
+  margin-top: 15px;
+  font-size: 16px;
+  color: #f4f7f9;
+  font-weight: 500;
+}
+
+/* Estilo para o QR Scanner */
+#qr-scanner {
+  margin-top: 25px;
+  width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+  border: 2px solid #4e9e89;
+  padding: 8px;
+  border-radius: 15px;
+  background-color: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hidden {
+  display: none;
+}
+
+/* Animação de transição */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Aplicar animações nos elementos */
+.container {
+  animation: fadeIn 1s ease-out;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+    max-width: 100%;
+  }
+
+  button {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  input[type="number"], input[type="text"] {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Página do Cliente</h1>
+    <button id="connect-wallet-client">Conectar MetaMask</button>
+    <div id="client-content" class="hidden">
+      <h2>Pagar Fatura</h2>
+      <label for="client-payment-id">ID da Fatura:</label>
+      <input type="number" id="client-payment-id" placeholder="Digite o ID da fatura">
+      <div id="invoice-info"></div>
+      <button id="verify-invoice-btn">Verificar Fatura</button>
+     
+      <br>
+      <button id="pay-invoice-btn">Pagar Fatura</button>
+    </div>
+    <p id="client-status"></p>
+  </div>
+
+  <!-- Carregar Ethers.js e HTML5 QR Code -->
+  <script src="https://unpkg.com/ethers@5.7.0/dist/ethers.umd.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      
+      // Substitua pelos endereços reais
+      const contractAddress = ""; // Endereço do contrato 
+      const usdcTokenAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"; // Endereço do token USDC (Rede: POL), mas pode ser qualquer outro token de qualquer rede
+
+      
+      // ABI do contrato PaymentSystem 
+      const paymentSystemABI = [ ];
+      
+      // ABI mínima para ERC-20 
+      const erc20ABI = [ ];
+      
+      let provider, signer, paymentSystemContract, usdcContract;
+      const connectButton = document.getElementById("connect-wallet-client");
+      const clientContent = document.getElementById("client-content");
+      const clientStatus = document.getElementById("client-status");
+      const invoiceInfoDiv = document.getElementById("invoice-info");
+      const qrScannerDiv = document.getElementById("qr-scanner");
+
+      connectButton.addEventListener("click", async function() {
+        if (window.ethereum) {
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          try {
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            paymentSystemContract = new ethers.Contract(contractAddress, paymentSystemABI, signer);
+            usdcContract = new ethers.Contract(usdcTokenAddress, erc20ABI, signer);
+            connectButton.innerText = "Carteira Conectada";
+            clientContent.classList.remove("hidden");
+          } catch (error) {
+            clientStatus.innerText = "Erro ao conectar MetaMask: " + error.message;
+          }
+        } else {
+          clientStatus.innerText = "MetaMask não está instalado.";
+        }
+      });
+
+      async function showInvoiceInfo(paymentId) {
+        try {
+          const payment = await paymentSystemContract.getPayment(paymentId);
+          const tableId = payment[0].toString();
+          const amount = ethers.utils.formatUnits(payment[1], 6);
+          const isPaid = payment[3];
+          const isCancelled = payment[4];
+          let status = "Pendente";
+          if (isPaid) status = "Pago";
+          else if (isCancelled) status = "Cancelado";
+          invoiceInfoDiv.innerHTML = `Fatura ID: ${paymentId}<br>Mesa: ${tableId}<br>Valor: ${amount} USDC<br>Status: ${status}`;
+        } catch (error) {
+          clientStatus.innerText = "Erro ao obter info da fatura: " + error.message;
+        }
+      }
+
+      // Botão "Verificar Fatura"
+      document.getElementById("verify-invoice-btn").addEventListener("click", function() {
+        const paymentId = document.getElementById("client-payment-id").value;
+        if (paymentId) {
+          showInvoiceInfo(paymentId);
+        } else {
+          alert("Por favor, insira um ID de fatura para verificar.");
+        }
+      });
+
+
+      // Pagar fatura
+      document.getElementById("pay-invoice-btn").addEventListener("click", async function() {
+        const paymentId = document.getElementById("client-payment-id").value;
+        if (!paymentId || isNaN(paymentId)) {
+          alert("Insira um ID de fatura válido.");
+          return;
+        }
+        try {
+          // Consulta o valor da fatura
+          const payment = await paymentSystemContract.getPayment(paymentId);
+          const amount = payment[1]; // valor em unidades (6 decimais)
+          // Aprovar automaticamente o valor de USDC
+          const approveTx = await usdcContract.approve(contractAddress, amount);
+          await approveTx.wait();
+          // Completar o pagamento
+          const tx = await paymentSystemContract.completePayment(paymentId);
+          await tx.wait();
+          clientStatus.innerText = "Pagamento realizado com sucesso!";
+          showInvoiceInfo(paymentId);
+        } catch (error) {
+          clientStatus.innerText = "Erro ao pagar fatura: " + error.message;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
